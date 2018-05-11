@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "533738217645",
+    "firebase_url": "https://poseidonstore-1234.firebaseio.com",
+    "project_id": "poseidonstore-1234",
+    "storage_bucket": "poseidonstore-1234.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533738217645:android:3fb6b5fed1640fdc",
+        "android_client_info": {
+          "package_name": "com.wolf.wise.holo.poseidon"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "533738217645-tb2ocpikk9jm5tgq580cktb9kbd7gc5i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wolf.wise.holo.poseidon",
+            "certificate_hash": "6d9031dcb08e88ff43912237ed08aec83a519085"
+          }
+        },
+        {
+          "client_id": "533738217645-g8di20jfb7dasch4r21cgrv1hap1emmn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpNwmSHXSetFwMiRbNuin-o8-ZQADHMbo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "533738217645-g8di20jfb7dasch4r21cgrv1hap1emmn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
