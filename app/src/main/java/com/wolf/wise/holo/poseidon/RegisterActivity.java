@@ -33,7 +33,7 @@ public class RegisterActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
         firebaseAuth = FirebaseAuth.getInstance();
         ButterKnife.bind(this);
     }
@@ -62,6 +62,7 @@ public class RegisterActivity extends BaseActivity {
 
                     Toast.makeText(RegisterActivity.this, "REG OK",
                             Toast.LENGTH_SHORT).show();
+                    finish();
                 } else {
                     Toast.makeText(RegisterActivity.this, getString(R.string.register_failure)+
                                     task.getException().getLocalizedMessage(),
