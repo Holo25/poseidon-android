@@ -14,6 +14,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.wolf.wise.holo.poseidon.data.User;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,6 +32,8 @@ public class RegisterActivity extends BaseActivity {
     EditText etPassword;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +64,8 @@ public class RegisterActivity extends BaseActivity {
                             new UserProfileChangeRequest.Builder().
                                     setDisplayName(etUsername.getText().toString()).build()
                     );
-
-                    Toast.makeText(RegisterActivity.this, "REG OK",
-                            Toast.LENGTH_SHORT).show();
                     finish();
+
                 } else {
                     Toast.makeText(RegisterActivity.this, getString(R.string.register_failure)+
                                     task.getException().getLocalizedMessage(),

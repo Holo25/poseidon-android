@@ -3,7 +3,6 @@ package com.wolf.wise.holo.poseidon;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.EditText;
@@ -13,6 +12,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.wolf.wise.holo.poseidon.data.User;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,12 +32,21 @@ public class LoginActivity extends BaseActivity {
     EditText etPassword;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
+    private DatabaseReference db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         firebaseAuth = FirebaseAuth.getInstance();
+        db= FirebaseDatabase.getInstance().getReference("users");
+
+
+        if(firebaseAuth.getCurrentUser()!=null){
+            startActivity(new Intent(LoginActivity.this,
+                    StoreActivity.class));
+            finish();
+        }
         ButterKnife.bind(this);
     }
 
@@ -50,11 +65,34 @@ public class LoginActivity extends BaseActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
 
-                hideProgressDialog();
-
                 if (task.isSuccessful()) {
-                    startActivity(new Intent(LoginActivity.this,
-                            StoreActivity.class));
+
+                    db.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if(!dataSnapshot.exists()){
+                                User tmpUser=new User(firebaseAuth.getCurrentUser().getUid(),firebaseAuth.getCurrentUser().getDisplayName(),1000);
+                                db.child(tmpUser.getUid()).setValue(tmpUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        hideProgressDialog();
+                                        startActivity(new Intent(LoginActivity.this, StoreActivity.class));
+                                        finish();
+                                    }
+                                });
+                            }else{
+                                hideProgressDialog();
+                                startActivity(new Intent(LoginActivity.this, StoreActivity.class));
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
 
                 } else {
                     Toast.makeText(LoginActivity.this,
