@@ -13,7 +13,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,15 +25,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.wolf.wise.holo.poseidon.adapter.CartAdapter;
 import com.wolf.wise.holo.poseidon.adapter.ItemAdapter;
 import com.wolf.wise.holo.poseidon.data.Item;
 import com.wolf.wise.holo.poseidon.data.User;
 import com.wolf.wise.holo.poseidon.fragment.CartFragment;
-import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent;
 
 
 public class StoreActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener, ItemAdapter.OnItemInteractionListener {
 
     TextView tvUsername;
     TextView tvBalance;
@@ -44,22 +43,18 @@ public class StoreActivity extends BaseActivity
 
     private RecyclerView recyclerViewItems;
     private ItemAdapter itemsAdapter;
+    private CartAdapter cartAdapter;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_store);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar =findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.toolbar_store);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -78,8 +73,8 @@ public class StoreActivity extends BaseActivity
 
         initUser();
 
-
-        itemsAdapter = new ItemAdapter(getApplicationContext());
+        cartAdapter= new CartAdapter(getApplicationContext(),this);
+        itemsAdapter = new ItemAdapter(getApplicationContext(),this);
         recyclerViewItems = (RecyclerView) findViewById(
                 R.id.recyclerViewItems);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -89,6 +84,7 @@ public class StoreActivity extends BaseActivity
         recyclerViewItems.setAdapter(itemsAdapter);
 
         initPostsListener();
+
     }
 
     @Override
@@ -97,6 +93,7 @@ public class StoreActivity extends BaseActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
+            toolbar.setTitle(R.string.toolbar_store);
             super.onBackPressed();
         }
     }
@@ -115,8 +112,8 @@ public class StoreActivity extends BaseActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_buy) {
+
             return true;
         }
 
@@ -129,14 +126,8 @@ public class StoreActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_cart) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-            CartFragment fragment = CartFragment.newInstance(1);
-            fragmentTransaction.add(R.id.fragment_frame, fragment);
-            fragmentTransaction.addToBackStack("Cart fragment");
-            fragmentTransaction.commit();
-
+            showCartFragment();
+            toolbar.setTitle(R.string.toolbar_cart);
         }
 
         if (id == R.id.nav_logout) {
@@ -198,8 +189,35 @@ public class StoreActivity extends BaseActivity
         });
     }
 
-    @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+    private void showCartFragment(){
+        CartFragment fragment = CartFragment.newInstance(1);
+        fragment.setCartAdapter(cartAdapter);
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if(fragmentManager.getBackStackEntryCount()>0){
+            fragmentManager.popBackStack();
+        }
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        fragmentTransaction.add(R.id.fragment_frame, fragment);
+        fragmentTransaction.addToBackStack("Cart fragment");
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onListFragmentInteraction(Item item) {
+
+    }
+
+    @Override
+    public boolean onItemAddInteraction(Item item) {
+        return cartAdapter.addItem(item);
+
+    }
+
+    @Override
+    public void onCartOpenInteraction() {
+        toolbar.setTitle(R.string.toolbar_cart);
+        showCartFragment();
     }
 }

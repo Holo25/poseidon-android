@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import com.wolf.wise.holo.poseidon.R;
 import com.wolf.wise.holo.poseidon.adapter.CartAdapter;
+import com.wolf.wise.holo.poseidon.data.Item;
 import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent;
 import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent.DummyItem;
 
@@ -28,6 +29,7 @@ public class CartFragment extends Fragment {
     // TODO: Customize parameters
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
+    private CartAdapter cartAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -69,7 +71,9 @@ public class CartFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new CartAdapter(DummyContent.ITEMS, mListener));
+            if(cartAdapter!=null)
+                recyclerView.setAdapter(cartAdapter);
+            else recyclerView.setAdapter(new CartAdapter(context,mListener));
         }
         return view;
     }
@@ -92,6 +96,10 @@ public class CartFragment extends Fragment {
         mListener = null;
     }
 
+    public void setCartAdapter(CartAdapter adapter){
+        cartAdapter=adapter;
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -103,7 +111,6 @@ public class CartFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(Item item);
     }
 }
