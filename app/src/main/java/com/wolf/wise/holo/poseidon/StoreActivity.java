@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,24 +20,30 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.wolf.wise.holo.poseidon.adapter.ItemAdapter;
+import com.wolf.wise.holo.poseidon.data.Item;
 import com.wolf.wise.holo.poseidon.data.User;
+import com.wolf.wise.holo.poseidon.fragment.CartFragment;
+import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class StoreActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener {
 
     TextView tvUsername;
     TextView tvBalance;
 
     private DatabaseReference db;
     private FirebaseAuth firebaseAuth;
+
+    private RecyclerView recyclerViewItems;
+    private ItemAdapter itemsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,21 +76,19 @@ public class StoreActivity extends BaseActivity
         db= FirebaseDatabase.getInstance().getReference("users");
         firebaseAuth = FirebaseAuth.getInstance();
 
+        initUser();
 
-        db.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                User user=dataSnapshot.getValue(User.class);
-                tvUsername.setText(user.getUsername());
-                tvBalance.setText(getString(R.string.nav_header_subtitle,user.getBalance()));
-            }
+        itemsAdapter = new ItemAdapter(getApplicationContext());
+        recyclerViewItems = (RecyclerView) findViewById(
+                R.id.recyclerViewItems);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+        recyclerViewItems.setLayoutManager(layoutManager);
+        recyclerViewItems.setAdapter(itemsAdapter);
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        initPostsListener();
     }
 
     @Override
@@ -120,6 +128,17 @@ public class StoreActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        if (id == R.id.nav_cart) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            CartFragment fragment = CartFragment.newInstance(1);
+            fragmentTransaction.add(R.id.fragment_frame, fragment);
+            fragmentTransaction.addToBackStack("Cart fragment");
+            fragmentTransaction.commit();
+
+        }
+
         if (id == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(this, LoginActivity.class));
@@ -129,5 +148,58 @@ public class StoreActivity extends BaseActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void initUser(){
+        db.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                User user=dataSnapshot.getValue(User.class);
+                tvUsername.setText(user.getUsername());
+                tvBalance.setText(getString(R.string.nav_header_subtitle,user.getBalance()));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void initPostsListener() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("items");
+        ref.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Item newItem = dataSnapshot.getValue(Item.class);
+                itemsAdapter.addItem(newItem, dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                // remove post from adapter
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
     }
 }

@@ -1,6 +1,7 @@
 package com.wolf.wise.holo.poseidon.adapter;
 
 import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,13 +25,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         public TextView tvName;
         public TextView tvCredit;
         public TextView tvPrice;
+        public ImageButton btnCart;
        
         public ViewHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);
             tvCredit = itemView.findViewById(R.id.tvCredit);
             tvPrice = itemView.findViewById(R.id.tvPrice);
-            
+            btnCart = itemView.findViewById(R.id.btnCart);
         }
     }
 
@@ -54,8 +57,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
         Item tmpItem = itemList.get(position);
         viewHolder.tvName.setText(tmpItem.getName());
-        viewHolder.tvCredit.setText(tmpItem.getCredit());
-        viewHolder.tvPrice.setText(tmpItem.getPrice());
+        viewHolder.tvCredit.setText(context.getResources().getString(R.string.card_credit,tmpItem.getCredit()));
+        viewHolder.tvPrice.setText(context.getResources().getString(R.string.card_price,tmpItem.getPrice()));
+        viewHolder.btnCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar.make(v, R.string.item_added_cart, Snackbar.LENGTH_SHORT).show();
+            }
+        });
 
         setAnimation(viewHolder.itemView, position);
     }
