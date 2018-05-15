@@ -102,7 +102,8 @@ public class StoreActivity extends BaseActivity
         initUser();
         initPostsListener();
 
-
+        if(getFragmentManager().getBackStackEntryCount()>0)
+            getFragmentManager().popBackStack();
     }
 
     @Override
@@ -191,6 +192,7 @@ public class StoreActivity extends BaseActivity
                 Item newItem = dataSnapshot.getValue(Item.class);
                 itemsAdapter.addItem(newItem, dataSnapshot.getKey());
                 //TODO Remove this
+                if(user==null)return;
                 profileAdapter.removeAll();
                 profileAdapter.addAll(itemsAdapter.getItemListFromUid(user.getItems()));
             }
