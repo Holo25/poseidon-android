@@ -11,14 +11,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Balance:"/>
+            android:text="@string/dialog_balance"/>
         <TextView
             android:id="@+id/tvdBalance"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="50cr"/>
+            android:text="@string/placeholder"/>
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,14 +27,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cost:"/>
+            android:text="@string/dialog_cost"/>
         <TextView
             android:id="@+id/tvdCost"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="50cr"/>
+            android:text="@string/placeholder"/>
     </RelativeLayout>
 
     <View
@@ -50,14 +50,14 @@
             android:id="@+id/tvdNewBalance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Balance: "/>
+            android:text="@string/dialog_new_balance"/>
         <TextView
             android:id="@+id/tvdNewBalanceCredit"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="50cr"/>
+            android:text="@string/placeholder"/>
     </RelativeLayout>
 
 </LinearLayout>

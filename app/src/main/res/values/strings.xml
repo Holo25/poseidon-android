@@ -21,4 +21,13 @@
     <string name="toolbar_cart">Cart</string>
     <string name="credit_value">%1$dcr</string>
     <string name="toolbar_profile">Profile</string>
+    <string name="placeholder">50C</string>
+    <string name="dialog_balance">Balance:</string>
+    <string name="dialog_cost">Cost:</string>
+    <string name="dialog_new_balance">New Balance:</string>
+    <string name="reg_username">Username</string>
+    <string name="reg_email">Email</string>
+    <string name="reg_password">Password</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
 </resources>
