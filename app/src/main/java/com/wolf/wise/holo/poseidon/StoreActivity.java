@@ -29,11 +29,12 @@ import com.wolf.wise.holo.poseidon.adapter.CartAdapter;
 import com.wolf.wise.holo.poseidon.adapter.ItemAdapter;
 import com.wolf.wise.holo.poseidon.data.Item;
 import com.wolf.wise.holo.poseidon.data.User;
+import com.wolf.wise.holo.poseidon.dialog.BuyDialog;
 import com.wolf.wise.holo.poseidon.fragment.CartFragment;
 
 
 public class StoreActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener, ItemAdapter.OnItemInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener, ItemAdapter.OnItemInteractionListener, BuyDialog.BuyDialogListener {
 
     TextView tvUsername;
     TextView tvBalance;
@@ -113,7 +114,8 @@ public class StoreActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.action_buy) {
-
+            BuyDialog dialog=BuyDialog.newInstace(100,232);
+            dialog.show(getSupportFragmentManager(),"BuyDialog");
             return true;
         }
 
@@ -219,5 +221,15 @@ public class StoreActivity extends BaseActivity
     public void onCartOpenInteraction() {
         toolbar.setTitle(R.string.toolbar_cart);
         showCartFragment();
+    }
+
+    @Override
+    public void onDialogPositiveClick() {
+
+    }
+
+    @Override
+    public void onDialogNegativeClick() {
+
     }
 }

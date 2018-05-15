@@ -19,4 +19,5 @@
     <string name="item_add_cart_failed">Item already in cart!</string>
     <string name="toolbar_store">Store</string>
     <string name="toolbar_cart">Cart</string>
+    <string name="credit_value">%1$dcr</string>
 </resources>
