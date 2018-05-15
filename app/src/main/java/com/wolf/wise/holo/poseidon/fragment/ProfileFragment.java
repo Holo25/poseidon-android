@@ -9,31 +9,34 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.wolf.wise.holo.poseidon.R;
-import com.wolf.wise.holo.poseidon.adapter.CartAdapter;
+import com.wolf.wise.holo.poseidon.adapter.ProfileAdapter;
 import com.wolf.wise.holo.poseidon.data.Item;
-import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent;
-import com.wolf.wise.holo.poseidon.fragment.dummy.DummyContent.DummyItem;
 
 
-public class CartFragment extends Fragment {
+public class ProfileFragment extends Fragment {
 
 
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
-    private CartAdapter cartAdapter;
+    private OnUserFragmentInteractionListener mListener;
+    private ProfileAdapter profileAdapter;
 
 
-    public CartFragment() {
+
+    private String username;
+    private int balance;
+
+    public ProfileFragment() {
     }
 
 
     @SuppressWarnings("unused")
-    public static CartFragment newInstance(int columnCount) {
-        CartFragment fragment = new CartFragment();
+    public static ProfileFragment newInstance(int columnCount) {
+        ProfileFragment fragment = new ProfileFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -52,20 +55,26 @@ public class CartFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_item_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_profile_list, container, false);
 
+        TextView tvUsername=view.findViewById(R.id.tvProfileUsername);
+        TextView tvBalance=view.findViewById(R.id.tvProfileBalance);
+        tvUsername.setText(username);
+        tvBalance.setText(getString(R.string.nav_header_subtitle,balance));
+
+        View recView=view.findViewById(R.id.rlist);
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
+        if (recView instanceof RecyclerView) {
+            Context context = recView.getContext();
+            RecyclerView recyclerView = (RecyclerView) recView;
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            if(cartAdapter!=null)
-                recyclerView.setAdapter(cartAdapter);
-            else recyclerView.setAdapter(new CartAdapter(context,mListener));
+            if(profileAdapter !=null)
+                recyclerView.setAdapter(profileAdapter);
+            else recyclerView.setAdapter(new ProfileAdapter(context,mListener));
         }
         return view;
     }
@@ -74,8 +83,8 @@ public class CartFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
+        if (context instanceof OnUserFragmentInteractionListener) {
+            mListener = (OnUserFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");
@@ -88,8 +97,16 @@ public class CartFragment extends Fragment {
         mListener = null;
     }
 
-    public void setCartAdapter(CartAdapter adapter){
-        cartAdapter=adapter;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public void setProfileAdapter(ProfileAdapter adapter){
+        profileAdapter =adapter;
     }
 
     /**
@@ -102,7 +119,7 @@ public class CartFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnListFragmentInteractionListener {
-        void onListFragmentInteraction(Item item);
+    public interface OnUserFragmentInteractionListener {
+        void onUserFragmentInteraction(Item item);
     }
 }

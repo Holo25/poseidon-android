@@ -89,6 +89,17 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         return itemList.size();
     }
 
+    public List<Item> getItemListFromUid(List<String> strings) {
+        ArrayList<Item> found=new ArrayList<>();
+        for(String string:strings){
+            for(Item item:itemList){
+                if(item.getUid().equals(string))
+                    found.add(item);
+            }
+        }
+        return found;
+    }
+
     public void addItem(Item item, String key) {
         itemList.add(item);
         notifyDataSetChanged();

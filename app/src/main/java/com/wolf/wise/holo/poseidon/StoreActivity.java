@@ -2,12 +2,14 @@ package com.wolf.wise.holo.poseidon;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -27,14 +31,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.wolf.wise.holo.poseidon.adapter.CartAdapter;
 import com.wolf.wise.holo.poseidon.adapter.ItemAdapter;
+import com.wolf.wise.holo.poseidon.adapter.ProfileAdapter;
 import com.wolf.wise.holo.poseidon.data.Item;
 import com.wolf.wise.holo.poseidon.data.User;
 import com.wolf.wise.holo.poseidon.dialog.BuyDialog;
 import com.wolf.wise.holo.poseidon.fragment.CartFragment;
+import com.wolf.wise.holo.poseidon.fragment.ProfileFragment;
+
+import java.io.Console;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class StoreActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener, ItemAdapter.OnItemInteractionListener, BuyDialog.BuyDialogListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CartFragment.OnListFragmentInteractionListener, ItemAdapter.OnItemInteractionListener, BuyDialog.BuyDialogListener, ProfileFragment.OnUserFragmentInteractionListener {
 
     TextView tvUsername;
     TextView tvBalance;
@@ -42,9 +52,12 @@ public class StoreActivity extends BaseActivity
     private DatabaseReference db;
     private FirebaseAuth firebaseAuth;
 
+    User user;
+
     private RecyclerView recyclerViewItems;
     private ItemAdapter itemsAdapter;
     private CartAdapter cartAdapter;
+    private ProfileAdapter profileAdapter;
     private Toolbar toolbar;
 
     @Override
@@ -72,10 +85,12 @@ public class StoreActivity extends BaseActivity
         db= FirebaseDatabase.getInstance().getReference("users");
         firebaseAuth = FirebaseAuth.getInstance();
 
-        initUser();
+
 
         cartAdapter= new CartAdapter(getApplicationContext(),this);
         itemsAdapter = new ItemAdapter(getApplicationContext(),this);
+        profileAdapter = new ProfileAdapter(getApplicationContext(),this);
+
         recyclerViewItems = (RecyclerView) findViewById(
                 R.id.recyclerViewItems);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -84,7 +99,9 @@ public class StoreActivity extends BaseActivity
         recyclerViewItems.setLayoutManager(layoutManager);
         recyclerViewItems.setAdapter(itemsAdapter);
 
+        initUser();
         initPostsListener();
+
 
     }
 
@@ -95,6 +112,7 @@ public class StoreActivity extends BaseActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             toolbar.setTitle(R.string.toolbar_store);
+            recyclerViewItems.setVisibility(View.VISIBLE);
             super.onBackPressed();
         }
     }
@@ -114,7 +132,7 @@ public class StoreActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.action_buy) {
-            BuyDialog dialog=BuyDialog.newInstace(100,232);
+            BuyDialog dialog=BuyDialog.newInstace(cartAdapter.getCost(),user.getBalance());
             dialog.show(getSupportFragmentManager(),"BuyDialog");
             return true;
         }
@@ -126,13 +144,13 @@ public class StoreActivity extends BaseActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_cart) {
+        if(id==R.id.nav_Profile){
+            showProfileFragment();
+            toolbar.setTitle(R.string.toolbar_profile);
+        }else if (id == R.id.nav_cart) {
             showCartFragment();
             toolbar.setTitle(R.string.toolbar_cart);
-        }
-
-        if (id == R.id.nav_logout) {
+        }else if (id == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -144,13 +162,18 @@ public class StoreActivity extends BaseActivity
     }
 
     private void initUser(){
-        db.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        db.child(firebaseAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                User user=dataSnapshot.getValue(User.class);
+                user=dataSnapshot.getValue(User.class);
+                if(user==null) return;
                 tvUsername.setText(user.getUsername());
                 tvBalance.setText(getString(R.string.nav_header_subtitle,user.getBalance()));
+                //TODO find better method
+                profileAdapter.removeAll();
+                profileAdapter.addAll(itemsAdapter.getItemListFromUid(user.getItems()));
+
             }
 
             @Override
@@ -167,6 +190,9 @@ public class StoreActivity extends BaseActivity
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Item newItem = dataSnapshot.getValue(Item.class);
                 itemsAdapter.addItem(newItem, dataSnapshot.getKey());
+                //TODO Remove this
+                profileAdapter.removeAll();
+                profileAdapter.addAll(itemsAdapter.getItemListFromUid(user.getItems()));
             }
 
             @Override
@@ -203,6 +229,25 @@ public class StoreActivity extends BaseActivity
 
         fragmentTransaction.add(R.id.fragment_frame, fragment);
         fragmentTransaction.addToBackStack("Cart fragment");
+        recyclerViewItems.setVisibility(View.GONE);
+        fragmentTransaction.commit();
+    }
+
+    private void showProfileFragment(){
+        ProfileFragment fragment = ProfileFragment.newInstance(1);
+        fragment.setUsername(user.getUsername());
+        fragment.setBalance(user.getBalance());
+        fragment.setProfileAdapter(profileAdapter);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if(fragmentManager.getBackStackEntryCount()>0){
+            fragmentManager.popBackStack();
+        }
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        fragmentTransaction.add(R.id.fragment_frame, fragment);
+        fragmentTransaction.addToBackStack("Profile fragment");
+        recyclerViewItems.setVisibility(View.GONE);
         fragmentTransaction.commit();
     }
 
@@ -220,16 +265,38 @@ public class StoreActivity extends BaseActivity
     @Override
     public void onCartOpenInteraction() {
         toolbar.setTitle(R.string.toolbar_cart);
+        recyclerViewItems.setVisibility(View.GONE);
         showCartFragment();
     }
 
     @Override
     public void onDialogPositiveClick() {
-
+        int cost=cartAdapter.getCost();
+        int balance=user.getBalance();
+        if(cost<=balance){
+            user.setBalance(balance-cost);
+            List<Item> items=cartAdapter.getItemList();
+            for(Item item:items)
+                user.addItem(item.getUid());
+            db.child(user.getUid()).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isComplete()) {
+                        cartAdapter.removeAll();
+                        Snackbar.make(findViewById(R.id.fragment_frame), "Items brought!", Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     @Override
     public void onDialogNegativeClick() {
+
+    }
+
+    @Override
+    public void onUserFragmentInteraction(Item item) {
 
     }
 }

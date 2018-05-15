@@ -7,9 +7,9 @@
     android:name="com.wolf.wise.holo.poseidon.fragment.CartFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:nestedScrollingEnabled="false"
     android:background="@color/white"
-    app:layoutManager="LinearLayoutManager"
+    android:nestedScrollingEnabled="false"
+    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
     tools:context=".fragment.CartFragment"
     tools:listitem="@layout/card_item"
     />

@@ -20,4 +20,5 @@
     <string name="toolbar_store">Store</string>
     <string name="toolbar_cart">Cart</string>
     <string name="credit_value">%1$dcr</string>
+    <string name="toolbar_profile">Profile</string>
 </resources>
