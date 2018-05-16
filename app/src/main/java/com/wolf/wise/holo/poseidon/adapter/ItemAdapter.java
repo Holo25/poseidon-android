@@ -61,16 +61,23 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         viewHolder.btnCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean success=listener.onItemAddInteraction(tmpItem);
-                if(success) {
+                int success=listener.onItemAddInteraction(tmpItem);
+                if(success==1) {
                     Snackbar.make(v, R.string.item_add_cart, Snackbar.LENGTH_SHORT).setAction("View", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             listener.onCartOpenInteraction();
                         }
                     }).show();
-                }else{
+                }else if(success==0){
                     Snackbar.make(v, R.string.item_add_cart_failed, Snackbar.LENGTH_SHORT).setAction("View", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            listener.onCartOpenInteraction();
+                        }
+                    }).show();
+                }else{
+                    Snackbar.make(v, R.string.item_add_profile_failed, Snackbar.LENGTH_SHORT).setAction("View", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             listener.onCartOpenInteraction();
@@ -99,6 +106,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         return found;
     }
 
+    public Item getItemFromUid(String string) {
+        for(Item item:itemList){
+            if(item.getUid().equals(string))
+                return item;
+        }
+        return null;
+
+    }
+
     public void addItem(Item item, String key) {
         itemList.add(item);
         notifyDataSetChanged();
@@ -115,7 +131,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
     public interface OnItemInteractionListener {
 
-        boolean onItemAddInteraction(Item item);
+        int onItemAddInteraction(Item item);
         void onCartOpenInteraction();
     }
 }

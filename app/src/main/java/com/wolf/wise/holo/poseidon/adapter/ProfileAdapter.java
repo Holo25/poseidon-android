@@ -75,6 +75,11 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ViewHold
             return true;
         }
     }
+
+    public boolean contains(Item item){
+        return itemList.contains(item);
+    }
+
     public void addAll(List<Item> items) {
         if(items.size()>0) {
             int size=itemList.size();

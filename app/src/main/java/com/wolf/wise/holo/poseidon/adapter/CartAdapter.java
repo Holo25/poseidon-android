@@ -78,12 +78,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         }
     }
 
-    public boolean addItem(Item item) {
-        if(itemList.contains(item)) return false;
+    public int addItem(Item item) {
+        if(itemList.contains(item)) return 0;
         else {
             itemList.add(item);
             notifyDataSetChanged();
-            return true;
+            return 1;
         }
     }
 

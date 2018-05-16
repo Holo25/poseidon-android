@@ -55,4 +55,8 @@ public class User {
     public void addItem(String s){
         items.add(s);
     }
+
+    public boolean contains(String s){
+        return items.contains(s);
+    }
 }

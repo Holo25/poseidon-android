@@ -38,8 +38,6 @@ import com.wolf.wise.holo.poseidon.dialog.BuyDialog;
 import com.wolf.wise.holo.poseidon.fragment.CartFragment;
 import com.wolf.wise.holo.poseidon.fragment.ProfileFragment;
 
-import java.io.Console;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -63,6 +61,7 @@ public class StoreActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        user=new User("hehhehhe", "ReplaceMe",0);
         setContentView(R.layout.activity_store);
         toolbar =findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.toolbar_store);
@@ -161,19 +160,21 @@ public class StoreActivity extends BaseActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
+    //User data listener
     private void initUser(){
-        db.child(firebaseAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+        db.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 user=dataSnapshot.getValue(User.class);
-                if(user==null) return;
+                //if(user==null) return;
                 tvUsername.setText(user.getUsername());
                 tvBalance.setText(getString(R.string.nav_header_subtitle,user.getBalance()));
+                /*
                 //TODO find better method
                 profileAdapter.removeAll();
                 profileAdapter.addAll(itemsAdapter.getItemListFromUid(user.getItems()));
+                */
 
             }
 
@@ -182,8 +183,51 @@ public class StoreActivity extends BaseActivity
 
             }
         });
-    }
+        db.child(firebaseAuth.getCurrentUser().getUid()).child("items").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String string=dataSnapshot.getValue().toString();
+                user.addItem(string);
+                Item item=itemsAdapter.getItemFromUid(string);
+                if(item!=null)
+                    profileAdapter.addItem(item);
+            }
 
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        db.child(firebaseAuth.getCurrentUser().getUid()).child("balance").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                user.setBalance(dataSnapshot.getValue(Integer.class));
+                tvBalance.setText(getString(R.string.nav_header_subtitle,user.getBalance()));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+    //Main Store page listener.
     private void initPostsListener() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("items");
         ref.addChildEventListener(new ChildEventListener() {
@@ -191,10 +235,14 @@ public class StoreActivity extends BaseActivity
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Item newItem = dataSnapshot.getValue(Item.class);
                 itemsAdapter.addItem(newItem, dataSnapshot.getKey());
+                if(user.contains(newItem.getUid()))
+                    profileAdapter.addItem(newItem);
+                /*
                 //TODO Remove this
                 if(user==null)return;
                 profileAdapter.removeAll();
                 profileAdapter.addAll(itemsAdapter.getItemListFromUid(user.getItems()));
+                */
             }
 
             @Override
@@ -253,15 +301,13 @@ public class StoreActivity extends BaseActivity
         fragmentTransaction.commit();
     }
 
-    @Override
-    public void onListFragmentInteraction(Item item) {
 
-    }
 
     @Override
-    public boolean onItemAddInteraction(Item item) {
+    public int onItemAddInteraction(Item item) {
+        if(!profileAdapter.contains(item))
         return cartAdapter.addItem(item);
-
+        else return -1;
     }
 
     @Override
@@ -278,17 +324,19 @@ public class StoreActivity extends BaseActivity
         if(cost<=balance){
             user.setBalance(balance-cost);
             List<Item> items=cartAdapter.getItemList();
-            for(Item item:items)
-                user.addItem(item.getUid());
-            db.child(user.getUid()).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isComplete()) {
-                        cartAdapter.removeAll();
-                        Snackbar.make(findViewById(R.id.fragment_frame), "Items brought!", Snackbar.LENGTH_SHORT).show();
+            if(items.size()>0) {
+                for (Item item : items)
+                    user.addItem(item.getUid());
+                db.child(user.getUid()).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isComplete()) {
+                            cartAdapter.removeAll();
+                            Snackbar.make(findViewById(R.id.fragment_frame), "Items brought!", Snackbar.LENGTH_SHORT).show();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -299,6 +347,11 @@ public class StoreActivity extends BaseActivity
 
     @Override
     public void onUserFragmentInteraction(Item item) {
+
+    }
+
+    @Override
+    public void onListFragmentInteraction(Item item) {
 
     }
 }
