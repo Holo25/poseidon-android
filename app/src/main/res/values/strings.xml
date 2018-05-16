@@ -31,4 +31,6 @@
     <string name="register">Register</string>
     <string name="login">Login</string>
     <string name="item_add_profile_failed">Item already brought!</string>
+    <string name="snackbar_brought">Items brought!</string>
+    <string name="snackbar_not_in_range">Not in range of university!</string>
 </resources>

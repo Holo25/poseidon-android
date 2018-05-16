@@ -1,10 +1,16 @@
 package com.wolf.wise.holo.poseidon;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,6 +25,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -57,16 +64,18 @@ public class StoreActivity extends BaseActivity
     private CartAdapter cartAdapter;
     private ProfileAdapter profileAdapter;
     private Toolbar toolbar;
+    private boolean isInRange = true;
+    LocationManager mLocationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        user=new User("hehhehhe", "ReplaceMe",0);
+        user = new User("hehhehhe", "ReplaceMe", 0);
         setContentView(R.layout.activity_store);
-        toolbar =findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.toolbar_store);
         setSupportActionBar(toolbar);
-
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -77,18 +86,17 @@ public class StoreActivity extends BaseActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        View navHeader=navigationView.getHeaderView(0);
-        tvUsername=navHeader.findViewById(R.id.tvUsername);
-        tvBalance=navHeader.findViewById(R.id.tvBalance);
+        View navHeader = navigationView.getHeaderView(0);
+        tvUsername = navHeader.findViewById(R.id.tvUsername);
+        tvBalance = navHeader.findViewById(R.id.tvBalance);
 
-        db= FirebaseDatabase.getInstance().getReference("users");
+        db = FirebaseDatabase.getInstance().getReference("users");
         firebaseAuth = FirebaseAuth.getInstance();
 
 
-
-        cartAdapter= new CartAdapter(getApplicationContext(),this);
-        itemsAdapter = new ItemAdapter(getApplicationContext(),this);
-        profileAdapter = new ProfileAdapter(getApplicationContext(),this);
+        cartAdapter = new CartAdapter(getApplicationContext(), this);
+        itemsAdapter = new ItemAdapter(getApplicationContext(), this);
+        profileAdapter = new ProfileAdapter(getApplicationContext(), this);
 
         recyclerViewItems = (RecyclerView) findViewById(
                 R.id.recyclerViewItems);
@@ -101,8 +109,49 @@ public class StoreActivity extends BaseActivity
         initUser();
         initPostsListener();
 
-        if(getFragmentManager().getBackStackEntryCount()>0)
+        if (getFragmentManager().getBackStackEntryCount() > 0)
             getFragmentManager().popBackStack();
+
+        startLocationListener();
+
+
+    }
+
+    public void startLocationListener(){
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(StoreActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+            return;
+        }
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000,
+                1000, mLocationListener);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationListener();
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(StoreActivity.this, "Permission denied to read use GPS", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     @Override
@@ -322,6 +371,10 @@ public class StoreActivity extends BaseActivity
         int cost=cartAdapter.getCost();
         int balance=user.getBalance();
         if(cost<=balance){
+            if(!isInRange){
+                Snackbar.make(findViewById(R.id.fragment_frame), R.string.snackbar_not_in_range, Snackbar.LENGTH_SHORT).show();
+                return;
+            }
             user.setBalance(balance-cost);
             List<Item> items=cartAdapter.getItemList();
             if(items.size()>0) {
@@ -332,7 +385,7 @@ public class StoreActivity extends BaseActivity
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isComplete()) {
                             cartAdapter.removeAll();
-                            Snackbar.make(findViewById(R.id.fragment_frame), "Items brought!", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(findViewById(R.id.fragment_frame), R.string.snackbar_brought, Snackbar.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -354,4 +407,32 @@ public class StoreActivity extends BaseActivity
     public void onListFragmentInteraction(Item item) {
 
     }
+
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(final Location location) {
+            Location targetLocation = new Location("");
+            targetLocation.setLatitude(47.473174d);
+            targetLocation.setLongitude(19.061786d);
+
+            float distanceInMeters =  targetLocation.distanceTo(location);
+            Toast.makeText(StoreActivity.this, (distanceInMeters<2000)+" Dist:"+distanceInMeters, Toast.LENGTH_SHORT).show();
+            isInRange=distanceInMeters<2000;
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
 }
